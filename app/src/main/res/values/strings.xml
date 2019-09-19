@@ -1,0 +1,25 @@
+<resources>
+    <string name="app_name">Daily.Maps</string>
+
+    <!-- Application Intro -->
+    <string name="first_slide_title">Добро Пожаловать!</string>
+    <string name="first_slide_description">Daily.Maps - органайзер №1 во всём мире!</string>
+    <string name="second_slide_title">Возьмите Время в Свои Руки!</string>
+    <string name="second_slide_description">Гибко настривайте свои задания и сортируйте их по группам и шаблонам.</string>
+    <string name="third_slide_title">Будьте Продуктивны!</string>
+    <string name="third_slide_description">Daily.Maps берёт работу по оптимизации вашего маршрута на себя.</string>
+
+    <!-- Input Elements Placeholders etc. -->
+    <string name="email_hint_text">E-mail</string>
+    <string name="password_hint_text">Пароль</string>
+    <string name="confirm_password_hint_text">Подтверждение</string>
+    <string name="login_button_hint_text">Авторизоваться</string>
+    <string name="register_button_hint_text">Зарегестрироваться</string>
+    <string name="register_link_text">Ещё не зарегестрированы?</string>
+
+    <!-- Error Messages -->
+    <string name="error_auth">Не удалось авторизироваться. Попробуйте позже.</string>
+    <string name="error_passwords_matching">Пароли не совпадают. Провертье правильность введённых данных.</string>
+
+
+</resources>
