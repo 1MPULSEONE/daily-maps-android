@@ -21,5 +21,10 @@
     <string name="error_auth">Не удалось авторизироваться. Попробуйте позже.</string>
     <string name="error_passwords_matching">Пароли не совпадают. Провертье правильность введённых данных.</string>
 
+    <!-- Bottom Navigation Labels -->
+    <string name="label_tab_1">Главная</string>
+    <string name="label_tab_2">Добавить</string>
+    <string name="label_tab_3">Профиль</string>
+
 
 </resources>

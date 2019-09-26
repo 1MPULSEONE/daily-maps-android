@@ -20,6 +20,8 @@ import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.common.SignInButton;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.auth.AuthCredential;
@@ -27,16 +29,19 @@ import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 public class FirebaseAuthActivity extends AppCompatActivity
         implements
         View.OnClickListener {
 
     private static final String TAG = "FirebaseAuthActivity";
+    private static final int RC_SIGN_IN = 9001;
     private FirebaseAuth mAuth;
     private GoogleSignInClient mGoogleSignInClient;
-    private static final int RC_SIGN_IN = 9001;
-
+    private FirebaseFirestore fireStore;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -49,6 +54,7 @@ public class FirebaseAuthActivity extends AppCompatActivity
                 .requestEmail()
                 .build();
         mGoogleSignInClient = GoogleSignIn.getClient(this, gso);
+        fireStore = FirebaseFirestore.getInstance();
 
         TextView registerLink = (TextView) findViewById(R.id.registerLink);
         registerLink.setOnClickListener(this);
@@ -101,14 +107,34 @@ public class FirebaseAuthActivity extends AppCompatActivity
                         if (task.isSuccessful()) {
                             // Sign in success, update UI with the signed-in user's information
                             Log.d(TAG, "signInWithCredential:success");
-                            FirebaseUser user = mAuth.getCurrentUser();
-                            updateUI(user);
-                        } else {
+                            FirebaseUser currentUser = mAuth.getCurrentUser();
+                            DocumentReference userDocument = fireStore.collection("users").document( currentUser.getUid() );
+                            userDocument.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                                @Override
+                                public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                                    if (task.isSuccessful()) {
+                                        DocumentSnapshot document = task.getResult();
+                                        if( !document.exists() ) {
+                                            // Document Doesn't exist, Register New User
+                                            Log.e(TAG, "No such document");
+                                            registerUserInFireStore( currentUser.getUid(), currentUser.getDisplayName() );
+                                        }
+                                    }
+                                    else {
+                                        // Something went wrong
+                                        Log.e(TAG, "get failed with ", task.getException());
+                                    }
+                                }
+                            });
+                            updateUI(currentUser);
+                        }
+
+                        else {
                             // If sign in fails, display a message to the user.
                             Log.w(TAG, "signInWithCredential:failure", task.getException());
                             Snackbar.make(
                                     findViewById(R.id.parentLayoutFirebaseAuth),
-                                    getString(R.string.error_auth),
+                                    getString(R.string.error_auth) + task.getException().getLocalizedMessage(),
                                     Snackbar.LENGTH_SHORT).show();
                             updateUI(null);
                         }
@@ -127,6 +153,36 @@ public class FirebaseAuthActivity extends AppCompatActivity
         }
     }
 
+    private void registerUserInFireStore(String userId, String userName) {
+        fireStore
+            .collection("users")
+            .document(userId)
+            .set( new UserInfo(userName) );
+    }
+
+    private void signInWithEmailAndPassword(String email, String password) {
+        mAuth.signInWithEmailAndPassword(email, password)
+                .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
+                    @Override
+                    public void onComplete(@NonNull Task<AuthResult> task) {
+                        if (task.isSuccessful()) {
+                            // Sign in success, update UI with the signed-in user's information
+                            Log.d(TAG, "signInWithEmail:success");
+                            FirebaseUser currentUser = mAuth.getCurrentUser();
+                            updateUI(currentUser);
+                        } else {
+                            // If sign in fails, display a message to the user.
+                            Log.w(TAG, "signInWithEmail:failure", task.getException());
+                            Snackbar.make(
+                                    findViewById(R.id.parentLayoutFirebaseAuth),
+                                    getString(R.string.error_auth),
+                                    Snackbar.LENGTH_SHORT).show();
+                            updateUI(null);
+                        }
+                    }
+                });
+    }
+
     @Override
     public void onClick(View v) {
         switch( v.getId() ) {
@@ -139,29 +195,11 @@ public class FirebaseAuthActivity extends AppCompatActivity
             case R.id.loginButton:
                 String email = ((EditText)findViewById(R.id.emailEditText)).getText().toString();
                 String password = ((EditText)findViewById(R.id.passwordEditText)).getText().toString();
-                mAuth.signInWithEmailAndPassword(email, password)
-                        .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
-                            @Override
-                            public void onComplete(@NonNull Task<AuthResult> task) {
-                                if (task.isSuccessful()) {
-                                    // Sign in success, update UI with the signed-in user's information
-                                    Log.d(TAG, "signInWithEmail:success");
-                                    FirebaseUser user = mAuth.getCurrentUser();
-                                    updateUI(user);
-                                } else {
-                                    // If sign in fails, display a message to the user.
-                                    Log.w(TAG, "signInWithEmail:failure", task.getException());
-                                    Snackbar.make(
-                                            findViewById(R.id.parentLayoutFirebaseAuth),
-                                            getString(R.string.error_auth),
-                                            Snackbar.LENGTH_SHORT).show();
-                                    updateUI(null);
-                                }
-                            }
-                        });
+                signInWithEmailAndPassword(email, password);
                 break;
             default:
                 break;
         }
     }
+
 }

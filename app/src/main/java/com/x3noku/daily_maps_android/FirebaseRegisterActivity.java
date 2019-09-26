@@ -17,6 +17,9 @@ import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.FirebaseFirestore;
+
+import javax.crypto.Cipher;
 
 public class FirebaseRegisterActivity extends AppCompatActivity
         implements
@@ -48,6 +51,15 @@ public class FirebaseRegisterActivity extends AppCompatActivity
         }
     }
 
+    private void registerUserInFireStore(String userId) {
+        FirebaseFirestore fireStore = FirebaseFirestore.getInstance();
+
+        fireStore
+            .collection("users")
+            .document(userId)
+            .set( new UserInfo() );
+    }
+
     @Override
     public void onClick(View v) {
         switch ( v.getId() ) {
@@ -63,8 +75,9 @@ public class FirebaseRegisterActivity extends AppCompatActivity
                                     if (task.isSuccessful()) {
                                         // Sign in success, update UI with the signed-in user's information
                                         Log.d(TAG, "createUserWithEmail:success");
-                                        FirebaseUser user = mAuth.getCurrentUser();
-                                        updateUI(user);
+                                        FirebaseUser currentUser = mAuth.getCurrentUser();
+                                        registerUserInFireStore( currentUser.getUid() );
+                                        updateUI(currentUser);
                                     } else {
                                         // If sign in fails, display a message to the user.
                                         Log.w(TAG, "createUserWithEmail:failure", task.getException());
@@ -75,7 +88,6 @@ public class FirebaseRegisterActivity extends AppCompatActivity
 
                                         updateUI(null);
                                     }
-                                    // ...
                                 }
                             });
                 }
@@ -90,4 +102,5 @@ public class FirebaseRegisterActivity extends AppCompatActivity
                 break;
         }
     }
+
 }
