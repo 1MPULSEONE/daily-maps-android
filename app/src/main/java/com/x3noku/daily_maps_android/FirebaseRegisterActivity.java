@@ -6,6 +6,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -19,7 +20,6 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
 
-import javax.crypto.Cipher;
 
 public class FirebaseRegisterActivity extends AppCompatActivity
         implements
@@ -57,7 +57,7 @@ public class FirebaseRegisterActivity extends AppCompatActivity
         fireStore
             .collection("users")
             .document(userId)
-            .set( new UserInfo() );
+            .set( new User() );
     }
 
     @Override
@@ -67,27 +67,30 @@ public class FirebaseRegisterActivity extends AppCompatActivity
                 String email = ((EditText)findViewById(R.id.emailEditText)).getText().toString();
                 String password = ((EditText)findViewById(R.id.passwordEditText)).getText().toString();
                 String confirmPassword = ((EditText)findViewById(R.id.confirmPasswordEditText)).getText().toString();
+                if( email.equals("") || password.equals("") || confirmPassword.equals("") ) {
+                    // ToDo: Replace With SnackBar
+                    Toast.makeText(this, "Пожалуйста, заполните поля!", Toast.LENGTH_SHORT).show();
+                    break;
+                }
+
                 if( password.equals(confirmPassword) ) {
                     mAuth.createUserWithEmailAndPassword(email, password)
-                            .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
-                                @Override
-                                public void onComplete(@NonNull Task<AuthResult> task) {
-                                    if (task.isSuccessful()) {
-                                        // Sign in success, update UI with the signed-in user's information
-                                        Log.d(TAG, "createUserWithEmail:success");
-                                        FirebaseUser currentUser = mAuth.getCurrentUser();
-                                        registerUserInFireStore( currentUser.getUid() );
-                                        updateUI(currentUser);
-                                    } else {
-                                        // If sign in fails, display a message to the user.
-                                        Log.w(TAG, "createUserWithEmail:failure", task.getException());
-                                        Snackbar.make(
-                                                findViewById(R.id.parentLayoutFirebaseAuth),
-                                                getString(R.string.error_auth),
-                                                Snackbar.LENGTH_SHORT).show();
+                            .addOnCompleteListener(this, task -> {
+                                if (task.isSuccessful()) {
+                                    // Sign in success, update UI with the signed-in user's information
+                                    Log.d(TAG, "createUserWithEmail:success");
+                                    FirebaseUser currentUser = mAuth.getCurrentUser();
+                                    registerUserInFireStore( currentUser.getUid() );
+                                    updateUI(currentUser);
+                                } else {
+                                    // If sign in fails, display a message to the user.
+                                    Log.w(TAG, "createUserWithEmail:failure", task.getException());
+                                    Snackbar.make(
+                                            findViewById(R.id.parentLayoutFirebaseAuth),
+                                            getString(R.string.error_auth),
+                                            Snackbar.LENGTH_SHORT).show();
 
-                                        updateUI(null);
-                                    }
+                                    updateUI(null);
                                 }
                             });
                 }

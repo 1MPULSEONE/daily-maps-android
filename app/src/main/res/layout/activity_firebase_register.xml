@@ -4,7 +4,7 @@
     android:id="@+id/parentLayoutFirebaseRegister"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/colorPrimary"
+    android:background="@color/backgroundColor"
     android:gravity="bottom"
     android:orientation="vertical"
     android:padding="30dp">
@@ -25,6 +25,7 @@
                 android:id="@+id/emailEditText"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:fontFamily="@font/roboto"
                 android:inputType="textEmailAddress" />
         </com.google.android.material.textfield.TextInputLayout>
 
@@ -44,6 +45,7 @@
                 android:id="@+id/passwordEditText"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:fontFamily="@font/roboto"
                 android:inputType="textPassword" />
         </com.google.android.material.textfield.TextInputLayout>
 
@@ -63,6 +65,7 @@
                 android:id="@+id/confirmPasswordEditText"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:fontFamily="@font/roboto"
                 android:inputType="textPassword" />
         </com.google.android.material.textfield.TextInputLayout>
 
@@ -76,7 +79,10 @@
             style="@style/Widget.MaterialComponents.Button.OutlinedButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/register_button_hint_text" />
+            android:backgroundTint="@color/buttonBackgroundColor"
+            android:fontFamily="@font/roboto_medium"
+            android:text="@string/register_button_hint_text"
+            android:textColor="@color/buttonTextColor" />
 
     </LinearLayout>
 

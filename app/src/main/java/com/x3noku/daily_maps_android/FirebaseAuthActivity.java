@@ -20,8 +20,6 @@ import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.common.SignInButton;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.auth.AuthCredential;
@@ -56,7 +54,7 @@ public class FirebaseAuthActivity extends AppCompatActivity
         mGoogleSignInClient = GoogleSignIn.getClient(this, gso);
         fireStore = FirebaseFirestore.getInstance();
 
-        TextView registerLink = (TextView) findViewById(R.id.registerLink);
+        TextView registerLink = findViewById(R.id.registerLink);
         registerLink.setOnClickListener(this);
 
         Button loginButton = findViewById(R.id.loginButton);
@@ -84,7 +82,12 @@ public class FirebaseAuthActivity extends AppCompatActivity
             try {
                 // Google Sign In was successful, authenticate with Firebase
                 GoogleSignInAccount account = task.getResult(ApiException.class);
-                firebaseAuthWithGoogle(account);
+                if( account != null ) {
+                    firebaseAuthWithGoogle(account);
+                }
+                else {
+                    Log.i(TAG, "onActivityResult: Account Is Null");
+                }
             } catch (ApiException e) {
                 // Google Sign In failed, update UI appropriately
                 Log.w(TAG, "Google sign in failed", e);
@@ -114,6 +117,7 @@ public class FirebaseAuthActivity extends AppCompatActivity
                                 public void onComplete(@NonNull Task<DocumentSnapshot> task) {
                                     if (task.isSuccessful()) {
                                         DocumentSnapshot document = task.getResult();
+                                        assert document != null;
                                         if( !document.exists() ) {
                                             // Document Doesn't exist, Register New User
                                             Log.e(TAG, "No such document");
@@ -157,7 +161,7 @@ public class FirebaseAuthActivity extends AppCompatActivity
         fireStore
             .collection("users")
             .document(userId)
-            .set( new UserInfo(userName) );
+            .set( new User(userName) );
     }
 
     private void signInWithEmailAndPassword(String email, String password) {
@@ -195,7 +199,13 @@ public class FirebaseAuthActivity extends AppCompatActivity
             case R.id.loginButton:
                 String email = ((EditText)findViewById(R.id.emailEditText)).getText().toString();
                 String password = ((EditText)findViewById(R.id.passwordEditText)).getText().toString();
-                signInWithEmailAndPassword(email, password);
+                if( !email.equals("") && !password.equals("") ) {
+                    signInWithEmailAndPassword(email, password);
+                }
+                else {
+                    // ToDo: Replace With SnackBar
+                    Toast.makeText(this, "Пожалуйста, заполните поля!", Toast.LENGTH_SHORT).show();
+                }
                 break;
             default:
                 break;

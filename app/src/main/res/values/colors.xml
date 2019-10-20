@@ -1,9 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorPrimary">#FEF8F8</color>
-    <color name="colorPrimaryDark">#FEF8F8</color>
-    <color name="colorAccent">#D81B60</color>
-    <color name="colorPrimaryStatusBarText">#B3B3B3</color>
+
+    <!-- Background Colors -->
+    <color name="backgroundColor">#FEF8F8</color>
+    <color name="statusBarBackgroundColor">#FEF8F8</color>
+    <color name="buttonBackgroundColor">#A5B5E7</color>
+    <!-- Text Colors -->
+    <color name="pageTitleTextColor">#000000</color>
+    <color name="buttonTextColor"> @color/backgroundColor </color>
+    <color name="inputHintColor">#A5B5E7</color>
+    <color name="colorPrimaryDark">#A5B5E7</color>
+    <color name="colorAccent">#B5C7FE</color>
 
     <!-- App Intro Colors -->
     <color name="splashScreenColorPrimary">#0CA5F5</color>

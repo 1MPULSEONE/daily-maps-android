@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="taskListTitleTextSize">30sp</dimen>
+    <dimen name="addTaskTitleTextSize">18sp</dimen>
+    <dimen name="addTaskFieldTitlesTextSize">13sp</dimen>
+
+    <dimen name="addTaskFieldInputTextSize">20sp</dimen>
+    <dimen name="addTaskPriorityFieldInputTextSize">12sp</dimen>
+    <dimen name="addTaskFieldInputPadding">4dp</dimen>
+    <dimen name="addTaskPriorityFieldInputPadding">10dp</dimen>
+</resources>

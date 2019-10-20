@@ -4,9 +4,9 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 
+import android.app.Dialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -16,8 +16,6 @@ import android.widget.Toast;
 
 import com.aurelhubert.ahbottomnavigation.AHBottomNavigation;
 import com.aurelhubert.ahbottomnavigation.AHBottomNavigationItem;
-import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
@@ -25,11 +23,11 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
-import com.google.firebase.firestore.auth.User;
 
 public class MainActivity extends AppCompatActivity
         implements
-        View.OnClickListener {
+        View.OnClickListener,
+        AHBottomNavigation.OnTabSelectedListener {
 
     private static final String TAG = "MainActivity";
     private SharedPreferences sharedPreferences;
@@ -37,7 +35,10 @@ public class MainActivity extends AppCompatActivity
     private FirebaseAuth mAuth;
     private FirebaseUser currentUser;
     private FirebaseFirestore fireStore;
-    private UserInfo userInfo;
+    private User userInfo;
+    private  AHBottomNavigation bottomNavigation;
+    private byte previousSelectedItem;
+    private Dialog fullscreenDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,6 +50,9 @@ public class MainActivity extends AppCompatActivity
 
         setContentView(R.layout.activity_main);
         createBottomNavigationMenu();
+
+        //fullscreenDialog = new Dialog(this, R.style.AppTheme);
+        //fullscreenDialog.setContentView(R.layout.dialog_fullscreen);
         /*--- [/Initialize all Data] ---*/
 
         Button logOutButton = findViewById(R.id.logOutButton);
@@ -70,31 +74,18 @@ public class MainActivity extends AppCompatActivity
         }
         else {
             DocumentReference userDocument = fireStore.collection("users").document( currentUser.getUid() );
-            /*userDocument.get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
-                @Override
-                public void onSuccess(DocumentSnapshot documentSnapshot) {
-                    userInfo = documentSnapshot.toObject(UserInfo.class);
-
-                    //ToDo: Delete this trash
-                    ((TextView)findViewById(R.id.textView)).setText("Hello, "+currentUser.getEmail()+"! \n This is your "+userInfo.getAuthCounter()+" authorization!");
+            userDocument.addSnapshotListener((documentSnapshot, e) -> {
+                if (e != null) {
+                    Log.w(TAG, "Listen failed.", e);
+                    return;
                 }
-            });*/
-            userDocument.addSnapshotListener(new EventListener<DocumentSnapshot>() {
-                @Override
-                public void onEvent(@Nullable DocumentSnapshot documentSnapshot,
-                                    @Nullable FirebaseFirestoreException e) {
-                    if (e != null) {
-                        Log.w(TAG, "Listen failed.", e);
-                        return;
-                    }
-
-                    if (documentSnapshot != null && documentSnapshot.exists()) {
-                        Log.d(TAG, "Current data: " + documentSnapshot.getData());
-                        userInfo = documentSnapshot.toObject(UserInfo.class);
-                        ((TextView)findViewById(R.id.textView)).setText("Hello, "+currentUser.getEmail()+"!");
-                    } else {
-                        Log.d(TAG, "Current data: null");
-                    }
+                if ( documentSnapshot != null && documentSnapshot.exists() ) {
+                    Log.d(TAG, "Current data: " + documentSnapshot.getData());
+                    userInfo = documentSnapshot.toObject(User.class);
+                    ((TextView)findViewById(R.id.textView)).setText("Hello, "+currentUser.getEmail()+"!");
+                }
+                else {
+                    Log.d(TAG, "Current data: null");
                 }
             });
         }
@@ -113,12 +104,13 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void createBottomNavigationMenu() {
-        AHBottomNavigation bottomNavigation = (AHBottomNavigation) findViewById(R.id.bottom_navigation);
+        bottomNavigation = findViewById(R.id.bottom_navigation);
 
     // Create items
         AHBottomNavigationItem firstItem = new AHBottomNavigationItem(R.string.label_tab_1, R.drawable.ic_home, R.color.color_tab_1);
         AHBottomNavigationItem secondItem = new AHBottomNavigationItem(R.string.label_tab_2, R.drawable.ic_add_circle, R.color.color_tab_2);
         AHBottomNavigationItem thirdItem = new AHBottomNavigationItem(R.string.label_tab_3, R.drawable.ic_profile, R.color.color_tab_3);
+        previousSelectedItem = 0;
     // Add items
         bottomNavigation.addItem(firstItem);
         bottomNavigation.addItem(secondItem);
@@ -133,14 +125,38 @@ public class MainActivity extends AppCompatActivity
     // Manage titles
         bottomNavigation.setTitleState(AHBottomNavigation.TitleState.ALWAYS_SHOW);
     // Set listeners
-        bottomNavigation.setOnTabSelectedListener(new AHBottomNavigation.OnTabSelectedListener() {
-            @Override
-            public boolean onTabSelected(int position, boolean wasSelected) {
-                //ToDo: delete this
-                Toast.makeText(MainActivity.this, "Page "+position, Toast.LENGTH_SHORT).show();
-                return true;
-            }
+        bottomNavigation.setOnTabSelectedListener(this);
+    }
+
+    private void openFullScreenDialog() {
+        /*fullscreenDialog = new Dialog(this, R.style.AppTheme);
+        fullscreenDialog.setContentView(R.layout.dialog_fullscreen);
+        Toolbar toolbarFullscreenDialog = fullscreenDialog.findViewById(R.id.toolbarFullScreenDialog);
+        toolbarFullscreenDialog.setNavigationOnClickListener(v -> {
+            fullscreenDialog.dismiss();
+            bottomNavigation.setCurrentItem(previousSelectedItem, false);
         });
+        fullscreenDialog.show();
+         */
+        AddTaskFragment addTaskFragment = AddTaskFragment.display(getSupportFragmentManager(), bottomNavigation, previousSelectedItem);
+    }
+
+    @Override
+    public boolean onTabSelected(int position, boolean wasSelected) {
+        switch(position) {
+            case 0:
+                Toast.makeText(this, "Opened Home Page", Toast.LENGTH_SHORT).show();
+                previousSelectedItem = 0;
+                break;
+            case 1:
+                openFullScreenDialog();
+                break;
+            case 2:
+                Toast.makeText(this, "Opened My Profile", Toast.LENGTH_SHORT).show();
+                previousSelectedItem = 2;
+                break;
+        }
+        return true;
     }
 
     @Override
@@ -152,6 +168,5 @@ public class MainActivity extends AppCompatActivity
                 break;
         }
     }
-
 
 }
