@@ -3,6 +3,12 @@
 
     <string name="GOOGLE_API_KEY">AIzaSyCYNQi2CRU93nOth7mo4tfmfK1ohKJuoGM</string>
 
+    <!-- FireStore Collections Names -->
+    <string name="firestore_collection_users">users</string>
+    <string name="firestore_collection_tasks">tasks</string>
+    <string name="firestore_collection_templates">templates</string>
+    <string name="firestore_collection_settings">settings</string>
+
     <!-- Application Intro -->
     <string name="first_slide_title">Добро Пожаловать!</string>
     <string name="first_slide_description">Daily.Maps - органайзер №1 во всём мире!</string>
@@ -19,9 +25,12 @@
     <string name="register_button_hint_text">Зарегестрироваться</string>
     <string name="register_link_text">Ещё не зарегестрированы?</string>
 
-    <!-- Error Messages -->
+    <!-- SnackBars Messages -->
     <string name="error_auth">Не удалось авторизироваться. Попробуйте позже.</string>
     <string name="error_passwords_matching">Пароли не совпадают. Провертье правильность введённых данных.</string>
+    <string name="error_empty_fields">Пожалуйста, заполните все необходимые поля!</string>
+    <string name="succes_task_saved">Новое задание успешно сохранено.</string>
+
 
     <!-- Bottom Navigation Labels -->
     <string name="label_tab_1">Главная</string>
@@ -37,13 +46,10 @@
     <string name="text_location_permission">Для нормальной работы приложеняи необходим доступ к геолокации.</string>
     <string name="ok_location_permission">Окей</string>
 
-
-    <!-- Add Task Fields Titles -->
+    <!-- Add Task Fields -->
     <string name="time_field_title">Время начала</string>
     <string name="duration_field_title">Продолжительность</string>
     <string name="priority_field_title">Приоритет</string>
-
-    <!-- Add Task Field Inputs Placeholders -->
     <string name="time_field_input_placeholder">12:00</string>
     <string name="duration_field_input_placeholder">15 мин</string>
     <string name="priority_field_input_placeholder">Средняя важность</string>

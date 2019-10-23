@@ -129,7 +129,7 @@
                         android:textSize="@dimen/addTaskFieldTitlesTextSize" />
 
                     <TextView
-                        android:id="@+id/prio_field_input"
+                        android:id="@+id/priority_field_input"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:fontFamily="@font/roboto_light"

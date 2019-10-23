@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item android:id="@+id/maximum_priority"
+        android:icon="@drawable/ic_done_gray_24dp"
+        android:title="Очень важно" />
+    <item android:id="@+id/nearly_maximum_priority"
+        android:icon="@drawable/ic_close_gray_24dp"
+        android:title="Важно"/>
+    <item android:id="@+id/medium_priority"
+        android:icon="@drawable/ic_close_gray_24dp"
+        android:title="Средняя важность"/>
+    <item android:id="@+id/nearly_minimum_priority"
+        android:icon="@drawable/ic_close_gray_24dp"
+        android:title="Не слишком важно"/>
+    <item android:id="@+id/minimum_priority"
+        android:icon="@drawable/ic_close_gray_24dp"
+        android:title="Не важно"/>
+
+</menu>

@@ -1,6 +1,7 @@
 package com.x3noku.daily_maps_android;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.TimePickerDialog;
@@ -17,9 +18,9 @@ import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.TimePicker;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.widget.PopupMenu;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -37,6 +38,11 @@ import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.material.snackbar.Snackbar;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -45,7 +51,8 @@ import java.util.Objects;
 public class AddTaskFragment extends DialogFragment
         implements
         OnMapReadyCallback,
-        GoogleMap.OnMapClickListener {
+        GoogleMap.OnMapClickListener,
+        View.OnClickListener {
     private static final String TAG = "AddTaskFragment";
     private View rootView;
     private Toolbar toolbar;
@@ -56,16 +63,22 @@ public class AddTaskFragment extends DialogFragment
     private AHBottomNavigation bottomNavigation;
     private ImageButton readyButton;
     private TextView timeFieldInput;
+    private TextView durationFieldInput;
+    private TextView priorityFieldInput;
     private Task task;
 
     private int previousSelectedItem;
     private int MY_PERMISSIONS_REQUEST_LOCATION = 89;
 
+    private FirebaseAuth mAuth;
+    private FirebaseUser currentUser;
+    private UserInfo currentUserInfo;
+    private FirebaseFirestore fireStore;
 
-    static AddTaskFragment display(FragmentManager fragmentManager, AHBottomNavigation bottomNavigation, int previousSelectedItem) {
+
+    static void display(FragmentManager fragmentManager, AHBottomNavigation bottomNavigation, int previousSelectedItem) {
         AddTaskFragment addTaskFragment = new AddTaskFragment(bottomNavigation, previousSelectedItem);
         addTaskFragment.show(fragmentManager, TAG);
-        return addTaskFragment;
     }
 
     private AddTaskFragment(AHBottomNavigation bottomNavigation, int previousSelectedItem) {
@@ -85,6 +98,8 @@ public class AddTaskFragment extends DialogFragment
             Objects.requireNonNull(dialog.getWindow()).setLayout(width, height);
         }
 
+        fireStore = FirebaseFirestore.getInstance();
+        mAuth = FirebaseAuth.getInstance();
         task = new Task();
     }
 
@@ -93,7 +108,7 @@ public class AddTaskFragment extends DialogFragment
         super.onCreateView(inflater, container, savedInstanceState);
         try {
             rootView = inflater.inflate(R.layout.fragment_add_task, container, false);
-            MapsInitializer.initialize( getActivity() );
+            MapsInitializer.initialize(Objects.requireNonNull(getActivity()));
             mMapView = rootView.findViewById(R.id.map);
             mMapView.onCreate(savedInstanceState);
             mMapView.getMapAsync(this);
@@ -105,33 +120,40 @@ public class AddTaskFragment extends DialogFragment
         toolbar = rootView.findViewById(R.id.toolbar);
         readyButton = rootView.findViewById(R.id.ready_button);
         timeFieldInput = rootView.findViewById(R.id.time_field_input);
-        timeFieldInput.setOnClickListener(v->{
-            TimePickerDialog timePickerDialog
-                    = new TimePickerDialog(
-                            getActivity(),
-                            onTimeSet,
-                    task.getStartTimeOfTask()/60,
-                    task.getStartTimeOfTask()%60,
-                    true);
-            timePickerDialog.show();
-        });
+        durationFieldInput = rootView.findViewById(R.id.duration_field_input);
+        priorityFieldInput = rootView.findViewById(R.id.priority_field_input);
+
+        timeFieldInput.setOnClickListener(this);
+        durationFieldInput.setOnClickListener(this);
+        priorityFieldInput.setOnClickListener(this);
+
 
         return rootView;
     }
+
     @Override
     public void onViewCreated(@NotNull View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        toolbar.setNavigationOnClickListener(v -> dismiss());
-        readyButton.setOnClickListener(v -> saveTask());
 
-        //toolbar.setTitle("Some Title");
-        //toolbar.inflateMenu(R.menu.add_task);
-        /*toolbar.setOnMenuItemClickListener(item -> {
-            Toast.makeText(getContext(), "Done Is Clicked", Toast.LENGTH_SHORT).show();
-            return true;
+        currentUser = mAuth.getCurrentUser();
+        DocumentReference userDocument = fireStore.collection(getString(R.string.firestore_collection_users)).document(currentUser.getUid());
+        userDocument.addSnapshotListener((documentSnapshot, e) -> {
+            if (e != null) {
+                Log.w(TAG, "Listen failed.", e);
+                return;
+            }
+            if ( documentSnapshot != null && documentSnapshot.exists() ) {
+                Log.d(TAG, "Current data: " + documentSnapshot.getData());
+                currentUserInfo = documentSnapshot.toObject(UserInfo.class);
+            }
+            else {
+                Log.d(TAG, "Current data: null");
+            }
         });
 
-         */
+        toolbar.setNavigationOnClickListener(v -> dismiss());
+        readyButton.setOnClickListener(this);
+
     }
 
     @Override
@@ -150,14 +172,14 @@ public class AddTaskFragment extends DialogFragment
                     .build();
             CameraUpdate camUpdate = CameraUpdateFactory.newCameraPosition(camPos);
             mGoogleMap.moveCamera(camUpdate);
-            Log.i(TAG, "onMapReady: User's Location is " + userLocation);
+            Log.i(TAG, "onMapReady: UserInfo's Location is " + userLocation);
 
         }
         catch (SecurityException e) {
-            Log.w(TAG, "onMapReady: User Rejected Location Request");
+            Log.w(TAG, "onMapReady: UserInfo Rejected Location Request");
         }
         catch (NullPointerException e) {
-            Log.e(TAG, "onMapReady: Trouble in Picking User's Location (CreateTaskFragment.java:81) \n" + e);
+            Log.e(TAG, "onMapReady: Trouble in Picking UserInfo's Location (CreateTaskFragment.java:81) \n" + e);
         }
 
         mGoogleMap.setOnMapClickListener(this);
@@ -170,7 +192,7 @@ public class AddTaskFragment extends DialogFragment
             marker.remove();
         }
         marker = mGoogleMap.addMarker(new MarkerOptions().position(clickPoint));
-        //mGoogleMap.moveCamera(CameraUpdateFactory.newLatLng(point));
+        task.setCoordinatesOfTask(clickPoint);
     }
 
     private void checkLocationPermission() {
@@ -254,12 +276,83 @@ public class AddTaskFragment extends DialogFragment
         bottomNavigation.setCurrentItem(previousSelectedItem, false);
     }
 
+    @Override
+    public void onClick(View v) {
+        switch( v.getId() ) {
+            case R.id.time_field_input:
+                TimePickerDialog timePickerDialog
+                        = new TimePickerDialog(
+                        getActivity(),
+                        onTimeSet,
+                        task.getStartTimeOfTask()/60,
+                        task.getStartTimeOfTask()%60,
+                        true);
+                timePickerDialog.show();
+                break;
+            case R.id.duration_field_input:
+                break;
+            case R.id.priority_field_input:
+                showMenu(v);
+                break;
+            case R.id.ready_button:
+                saveTask();
+                break;
+        }
+    }
+
+    private void showMenu(View anchor) {
+        PopupMenu popup = new PopupMenu(Objects.requireNonNull(getContext()), anchor);
+        popup.getMenuInflater().inflate(R.menu.priority_field_popup, popup.getMenu());
+        popup.show();
+        popup.setOnMenuItemClickListener(v-> {
+            switch(v.getItemId()) {
+                case R.id.maximum_priority:
+                    task.setPriorityOfTask(0);
+                    break;
+                case R.id.nearly_maximum_priority:
+                    task.setPriorityOfTask(1);
+                    break;
+                case R.id.medium_priority:
+                    task.setPriorityOfTask(2);
+                    break;
+                case R.id.nearly_minimum_priority:
+                    task.setPriorityOfTask(3);
+                    break;
+                case R.id.minimum_priority:
+                    task.setPriorityOfTask(4);
+                    break;
+            }
+            priorityFieldInput.setText( v.getTitle() );
+            return false;
+        });
+    }
+
+    private boolean allFieldsFilledRight() {
+        // ToDO: realize this stuff
+        return true;
+    }
+
     private void saveTask() {
-        // ToDo: realize this stuff
-        Toast.makeText(this.getContext(), "Task Saved", Toast.LENGTH_SHORT).show();
+        if( allFieldsFilledRight() && currentUserInfo != null ) {
+            fireStore
+                .collection(getString(R.string.firestore_collection_tasks))
+                .add( task )
+                .addOnSuccessListener(documentReference -> {
+                    currentUserInfo.addTask( documentReference.getId() );
+                    fireStore
+                        .collection(rootView.getContext().getString(R.string.firestore_collection_users))
+                        .document( currentUser.getUid() )
+                        .set( currentUserInfo );
+                    Snackbar
+                        .make(rootView, rootView.getContext().getString(R.string.succes_task_saved), Snackbar.LENGTH_SHORT)
+                        .show();
+                    dismiss();
+                });
+        }
     }
 
     private TimePickerDialog.OnTimeSetListener onTimeSet = new TimePickerDialog.OnTimeSetListener() {
+        @SuppressLint("SetTextI18n")
         public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
             task.setStartTimeOfTask( hourOfDay*60 + minute );
             timeFieldInput.setText(hourOfDay+":"+ (minute < 10 ? "0"+minute : minute) );

@@ -34,8 +34,13 @@ dependencies {
     implementation ("org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion") {
         transitive = false
     }
+
     // AndroidX Capable version(AppIntro)
     implementation 'com.github.AppIntro:AppIntro:5.1.0'
+    // AHBottomNavigationMenu
+    implementation 'com.aurelhubert:ahbottomnavigation:2.3.4'
+    // Time Duration Picker
+    implementation 'mobi.upod:time-duration-picker:1.1.3'
     // Material Design
     implementation 'com.google.android.material:material:1.1.0-beta01'
     // FireBase Analytics
@@ -46,12 +51,10 @@ dependencies {
     implementation 'com.google.firebase:firebase-auth:19.1.0'
     // Play Services Auth
     implementation 'com.google.android.gms:play-services-auth:17.0.0'
-    // AHBottomNavigationMenu
-    implementation 'com.aurelhubert:ahbottomnavigation:2.3.4'
     // FireBase Cloud FireStore
-    implementation 'com.google.firebase:firebase-firestore:21.1.1'
+    implementation 'com.google.firebase:firebase-firestore:21.2.0'
     //Google Play Services (Google Maps)
-    implementation 'com.google.android.gms:play-services-maps:15.0.1'
+    implementation 'com.google.android.gms:play-services-maps:17.0.0'
 
 
     testImplementation 'junit:junit:4.12'

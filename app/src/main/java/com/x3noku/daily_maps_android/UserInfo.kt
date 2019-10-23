@@ -3,13 +3,13 @@ package com.x3noku.daily_maps_android
 import java.util.ArrayList
 import java.util.LinkedList
 
-class User {
+class UserInfo {
     var nickname: String
-    var tasksId: List<String>
-    var templatesId: List<String>
+    var tasksId: MutableList<String>
+    var templatesId: MutableList<String>
 
     internal constructor() {
-        this.nickname = "New User"
+        this.nickname = "New UserInfo"
         this.tasksId = LinkedList()
         this.templatesId = ArrayList()
     }
@@ -18,6 +18,10 @@ class User {
         this.nickname = nickname
         this.tasksId = LinkedList()
         this.templatesId = ArrayList()
+    }
+
+    fun addTask( taskId: String ) {
+        this.tasksId.add(taskId)
     }
 
 }

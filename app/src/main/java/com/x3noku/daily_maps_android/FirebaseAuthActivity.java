@@ -119,7 +119,7 @@ public class FirebaseAuthActivity extends AppCompatActivity
                                         DocumentSnapshot document = task.getResult();
                                         assert document != null;
                                         if( !document.exists() ) {
-                                            // Document Doesn't exist, Register New User
+                                            // Document Doesn't exist, Register New UserInfo
                                             Log.e(TAG, "No such document");
                                             registerUserInFireStore( currentUser.getUid(), currentUser.getDisplayName() );
                                         }
@@ -161,7 +161,7 @@ public class FirebaseAuthActivity extends AppCompatActivity
         fireStore
             .collection("users")
             .document(userId)
-            .set( new User(userName) );
+            .set( new UserInfo(userName) );
     }
 
     private void signInWithEmailAndPassword(String email, String password) {
@@ -203,8 +203,14 @@ public class FirebaseAuthActivity extends AppCompatActivity
                     signInWithEmailAndPassword(email, password);
                 }
                 else {
-                    // ToDo: Replace With SnackBar
-                    Toast.makeText(this, "Пожалуйста, заполните поля!", Toast.LENGTH_SHORT).show();
+                    Snackbar
+                        .make(
+                            findViewById(R.id.parentLayoutFirebaseAuth),
+                            getString(R.string.error_empty_fields),
+                            Snackbar.LENGTH_SHORT
+                        )
+                        .show();
+
                 }
                 break;
             default:

@@ -1,10 +1,8 @@
 package com.x3noku.daily_maps_android;
 
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 
-import android.app.Dialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -19,10 +17,7 @@ import com.aurelhubert.ahbottomnavigation.AHBottomNavigationItem;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
-import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.FirebaseFirestoreException;
 
 public class MainActivity extends AppCompatActivity
         implements
@@ -35,10 +30,9 @@ public class MainActivity extends AppCompatActivity
     private FirebaseAuth mAuth;
     private FirebaseUser currentUser;
     private FirebaseFirestore fireStore;
-    private User userInfo;
     private  AHBottomNavigation bottomNavigation;
     private byte previousSelectedItem;
-    private Dialog fullscreenDialog;
+    private UserInfo currentUserInfo;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,8 +45,6 @@ public class MainActivity extends AppCompatActivity
         setContentView(R.layout.activity_main);
         createBottomNavigationMenu();
 
-        //fullscreenDialog = new Dialog(this, R.style.AppTheme);
-        //fullscreenDialog.setContentView(R.layout.dialog_fullscreen);
         /*--- [/Initialize all Data] ---*/
 
         Button logOutButton = findViewById(R.id.logOutButton);
@@ -73,7 +65,7 @@ public class MainActivity extends AppCompatActivity
             startActivity(new Intent(getBaseContext(), FirebaseAuthActivity.class));
         }
         else {
-            DocumentReference userDocument = fireStore.collection("users").document( currentUser.getUid() );
+            DocumentReference userDocument = fireStore.collection(getString(R.string.firestore_collection_users)).document( currentUser.getUid() );
             userDocument.addSnapshotListener((documentSnapshot, e) -> {
                 if (e != null) {
                     Log.w(TAG, "Listen failed.", e);
@@ -81,7 +73,7 @@ public class MainActivity extends AppCompatActivity
                 }
                 if ( documentSnapshot != null && documentSnapshot.exists() ) {
                     Log.d(TAG, "Current data: " + documentSnapshot.getData());
-                    userInfo = documentSnapshot.toObject(User.class);
+                    currentUserInfo = documentSnapshot.toObject(UserInfo.class);
                     ((TextView)findViewById(R.id.textView)).setText("Hello, "+currentUser.getEmail()+"!");
                 }
                 else {
@@ -125,20 +117,7 @@ public class MainActivity extends AppCompatActivity
     // Manage titles
         bottomNavigation.setTitleState(AHBottomNavigation.TitleState.ALWAYS_SHOW);
     // Set listeners
-        bottomNavigation.setOnTabSelectedListener(this);
-    }
-
-    private void openFullScreenDialog() {
-        /*fullscreenDialog = new Dialog(this, R.style.AppTheme);
-        fullscreenDialog.setContentView(R.layout.dialog_fullscreen);
-        Toolbar toolbarFullscreenDialog = fullscreenDialog.findViewById(R.id.toolbarFullScreenDialog);
-        toolbarFullscreenDialog.setNavigationOnClickListener(v -> {
-            fullscreenDialog.dismiss();
-            bottomNavigation.setCurrentItem(previousSelectedItem, false);
-        });
-        fullscreenDialog.show();
-         */
-        AddTaskFragment addTaskFragment = AddTaskFragment.display(getSupportFragmentManager(), bottomNavigation, previousSelectedItem);
+        bottomNavigation.setOnTabSelectedListener(this);;
     }
 
     @Override
@@ -149,7 +128,8 @@ public class MainActivity extends AppCompatActivity
                 previousSelectedItem = 0;
                 break;
             case 1:
-                openFullScreenDialog();
+                // Open FullScreen Dialog
+                AddTaskFragment.display(getSupportFragmentManager(), bottomNavigation, previousSelectedItem);
                 break;
             case 2:
                 Toast.makeText(this, "Opened My Profile", Toast.LENGTH_SHORT).show();

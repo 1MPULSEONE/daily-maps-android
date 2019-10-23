@@ -6,7 +6,7 @@ class Task internal constructor() {
     var nameOfTask: String? = null
     var startTimeOfTask: Int = 0
     var durationOfTask: Long = 0
-    var priorityOfTask: Byte = 0
+    var priorityOfTask: Int = 0
     var coordinatesOfTask: LatLng? = null
 
     init {

@@ -8,14 +8,10 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
 import com.google.android.material.snackbar.Snackbar;
-import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -55,9 +51,9 @@ public class FirebaseRegisterActivity extends AppCompatActivity
         FirebaseFirestore fireStore = FirebaseFirestore.getInstance();
 
         fireStore
-            .collection("users")
+            .collection(getString(R.string.firestore_collection_users))
             .document(userId)
-            .set( new User() );
+            .set( new UserInfo() );
     }
 
     @Override
@@ -68,8 +64,13 @@ public class FirebaseRegisterActivity extends AppCompatActivity
                 String password = ((EditText)findViewById(R.id.passwordEditText)).getText().toString();
                 String confirmPassword = ((EditText)findViewById(R.id.confirmPasswordEditText)).getText().toString();
                 if( email.equals("") || password.equals("") || confirmPassword.equals("") ) {
-                    // ToDo: Replace With SnackBar
-                    Toast.makeText(this, "Пожалуйста, заполните поля!", Toast.LENGTH_SHORT).show();
+                    Snackbar
+                            .make(
+                                    findViewById(R.id.parentLayoutFirebaseRegister),
+                                    getString(R.string.error_empty_fields),
+                                    Snackbar.LENGTH_SHORT
+                            )
+                            .show();
                     break;
                 }
 
